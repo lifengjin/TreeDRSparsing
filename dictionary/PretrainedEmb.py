@@ -1,4 +1,4 @@
-from vocabulary import vocabulary
+from .vocabulary import vocabulary
 class PretrainedEmb:
 	def __init__(self, filename):
 		self._ttv = [[]] #leave a space for UNK

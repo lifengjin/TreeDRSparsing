@@ -56,4 +56,4 @@ if __name__ == "__main__":
 
 	out_tree(lemmas, trees)
 
-	print "\n".join([" ".join(tree) for tree in trees])
+	print("\n".join([" ".join(tree) for tree in trees]))

@@ -188,10 +188,10 @@ class struct_constraints:
 			state.bracket += 1
 
 	def _print_state(self, state):
-		print "stack", [self.actn_v.totok(x) for x in state.stack]
-		print "stack_ex", state.stack_ex
-		print "kp", state.k, state.p
-		print "drs", state.drs_c
+		print("stack", [self.actn_v.totok(x) for x in state.stack])
+		print("stack_ex", state.stack_ex)
+		print("kp", state.k, state.p)
+		print("drs", state.drs_c)
 	def _get_one(self, size):
 		return [1 for i in range(size)]
 	def _get_zero(self, size):
@@ -281,9 +281,9 @@ class relation_constraints:
 			#assert False
 
 	def _print_state(self, state):
-		print "cond", self.actn_v.totok(state.cond)
-		print "rel g_rel", state.rel, state.rel_g
-		print "d_rel d_rel_g", state.d_rel, state.d_rel_g
+		print("cond", self.actn_v.totok(state.cond))
+		print("rel g_rel", state.rel, state.rel_g)
+		print("d_rel d_rel_g", state.d_rel, state.d_rel_g)
 	def _get_one(self, size):
 		return [1 for i in range(size)]
 	def _get_zero(self, size):
@@ -436,15 +436,15 @@ class variable_constraints:
 		state.prev_v = ix
 
 	def _print_state(self, state):
-		print "cond", self.actn_v.totok(state.cond)
+		print("cond", self.actn_v.totok(state.cond))
 		if state.rel >= self.size:
-			print "rel", "$"+str(state.rel - self.size)+"("
+			print("rel", "$"+str(state.rel - self.size)+"(")
 		else:
-			print "rel", self.actn_v.totok(state.rel)
-		print "p_max", state.p_max
-		print "k_scope", state.k_scope
-		print "xest", state.x, state.e, state.s, state.t
-		print "prev_prev_v prev_v", state.prev_prev_v, state.prev_v
+			print("rel", self.actn_v.totok(state.rel))
+		print("p_max", state.p_max)
+		print("k_scope", state.k_scope)
+		print("xest", state.x, state.e, state.s, state.t)
+		print("prev_prev_v prev_v", state.prev_prev_v, state.prev_v)
 	def _get_one(self, size):
 		return [1 for i in range(size)]
 	def _get_zero(self, size):

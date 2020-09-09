@@ -59,7 +59,8 @@ Command line options:
 """
 
 import os, random, time, argparse, re, sys, codecs
-reload(sys)
+import importlib
+importlib.reload(sys)
 sys.setdefaultencoding('utf-8')	#necessary to avoid unicode errors
 import multiprocessing
 from multiprocessing import Pool
@@ -100,10 +101,10 @@ def get_best_match(attribute1, relation1, attribute2, relation2,
 	match_triple_dict = {}	#save mapping and number of matches so that we don't have to calculate stuff twice
 	
 	if veryVerbose:
-		print >> DEBUG_LOG, "Candidate mappings:"
-		print >> DEBUG_LOG, candidate_mappings
-		print >> DEBUG_LOG, "Weight dictionary"
-		print >> DEBUG_LOG, weight_dict
+		print("Candidate mappings:", file=DEBUG_LOG)
+		print(candidate_mappings, file=DEBUG_LOG)
+		print("Weight dictionary", file=DEBUG_LOG)
+		print(weight_dict, file=DEBUG_LOG)
 	
 	# initialize best match mapping
 	# the ith entry is the node index in DRG 2 which maps to the ith node in DRG 1
@@ -126,14 +127,14 @@ def get_best_match(attribute1, relation1, attribute2, relation2,
 		match_num = map_cur[1]
 		#print 'initial length', len(cur_mapping)
 		if veryVerbose:
-			print >> DEBUG_LOG, "Node mapping at start", cur_mapping
-			print >> DEBUG_LOG, "Triple match number at start:", match_num
+			print("Node mapping at start", cur_mapping, file=DEBUG_LOG)
+			print("Triple match number at start:", match_num, file=DEBUG_LOG)
 		
 		while True:
 			# get best gain
 			(gain, new_mapping) = get_best_gain(cur_mapping, candidate_mappings, weight_dict, len(var_map_gold), match_num, match_triple_dict)
 			if veryVerbose:
-				print >> DEBUG_LOG, "Gain after the hill-climbing", gain
+				print("Gain after the hill-climbing", gain, file=DEBUG_LOG)
 			# hill-climbing until there will be no gain for new node mapping
 			if gain <= 0:
 				break
@@ -141,8 +142,8 @@ def get_best_match(attribute1, relation1, attribute2, relation2,
 			match_num += gain
 			cur_mapping = new_mapping[:]
 			if veryVerbose:
-				print >> DEBUG_LOG, "Update triple match number to:", match_num
-				print >> DEBUG_LOG, "Current mapping:", cur_mapping
+				print("Update triple match number to:", match_num, file=DEBUG_LOG)
+				print("Current mapping:", cur_mapping, file=DEBUG_LOG)
 			
 		if match_num > best_match_num:
 			best_mapping = cur_mapping[:]
@@ -156,7 +157,7 @@ def get_best_match(attribute1, relation1, attribute2, relation2,
 			(precision, recall, f_score) = compute_f(best_match_num, test_triple_num, gold_triple_num, significant, False)
 			all_fscores.append(f_score)
 			if prin and single:
-				print 'Best match already found, stop restarts at restart {0}'.format(i)
+				print('Best match already found, stop restarts at restart {0}'.format(i))
 			if i < len(smart_fscores):
 				smart_fscores[i] = best_match_num
 			break
@@ -227,7 +228,7 @@ def get_mapping_list(candidate_mappings, weight_dict, total_restarts, select_bes
 		if sorted_maps:
 			return sorted_maps[0][0]	#return best mapping
 		else:
-			print 'No best init mapping found'
+			print('No best init mapping found')
 			return []	
 	else:
 		return random_maps
@@ -576,12 +577,12 @@ def compute_match(mapping, weight_dict, match_triple_dict):
 	"""
 	# If this mapping has been investigated before, retrieve the value instead of re-computing.
 	if veryVerbose:
-		print >> DEBUG_LOG, "Computing match for mapping"
-		print >> DEBUG_LOG, mapping
+		print("Computing match for mapping", file=DEBUG_LOG)
+		print(mapping, file=DEBUG_LOG)
 	if tuple(mapping) in match_triple_dict:
 		#print 'Break search because we saw this before'
 		if veryVerbose:
-			print >> DEBUG_LOG, "saved value", match_triple_dict[tuple(mapping)]
+			print("saved value", match_triple_dict[tuple(mapping)], file=DEBUG_LOG)
 		return match_triple_dict[tuple(mapping)]
 	match_num = 0
 	# i is node index in DRG 1, m is node index in DRG 2
@@ -594,13 +595,13 @@ def compute_match(mapping, weight_dict, match_triple_dict):
 		if current_node_pair not in weight_dict:
 			continue
 		if veryVerbose:
-			print >> DEBUG_LOG, "node_pair", current_node_pair
+			print("node_pair", current_node_pair, file=DEBUG_LOG)
 		for key in weight_dict[current_node_pair]:
 			if key == -1:
 				# matching triple resulting from attribute triples
 				match_num += weight_dict[current_node_pair][key]
 				if veryVerbose:
-					print >> DEBUG_LOG, "attribute match", weight_dict[current_node_pair][key]
+					print("attribute match", weight_dict[current_node_pair][key], file=DEBUG_LOG)
 			# only consider node index larger than i to avoid duplicates
 			# as we store both weight_dict[node_pair1][node_pair2] and
 			#     weight_dict[node_pair2][node_pair1] for a relation
@@ -609,9 +610,9 @@ def compute_match(mapping, weight_dict, match_triple_dict):
 			elif mapping[key[0]] == key[1]: #key is also a node pair. If we have e.g. node_pair(1,5), we check if indeed mapping[1] is 5, meaning that in the current mapping 1 maps to 5
 				match_num += weight_dict[current_node_pair][key]
 				if veryVerbose:
-					print >> DEBUG_LOG, "relation match with", key, weight_dict[current_node_pair][key]
+					print("relation match with", key, weight_dict[current_node_pair][key], file=DEBUG_LOG)
 	if veryVerbose:
-		print >> DEBUG_LOG, "match computing complete, result:", match_num
+		print("match computing complete, result:", match_num, file=DEBUG_LOG)
 	# update match_triple_dict
 	match_triple_dict[tuple(mapping)] = match_num
 	return match_num  
@@ -766,17 +767,17 @@ def get_best_gain(mapping, candidate_mappings, weight_dict, num_vars, cur_match_
 				# remap i to another unmatched node (move)
 				# (i, m) -> (i, nm)
 				if veryVerbose:
-					print >> DEBUG_LOG, "Remap node", i, "from ", nid, "to", nm
+					print("Remap node", i, "from ", nid, "to", nm, file=DEBUG_LOG)
 				mv_gain = move_gain(mapping, i, nid, nm, weight_dict, cur_match_num, match_triple_dict)
 				if veryVerbose:
-					print >> DEBUG_LOG, "Move gain:", mv_gain
+					print("Move gain:", mv_gain, file=DEBUG_LOG)
 					new_mapping = mapping[:]
 					new_mapping[i] = nm
 					new_match_num = compute_match(new_mapping, weight_dict, match_triple_dict)
 					if new_match_num != cur_match_num + mv_gain:
-						print >> ERROR_LOG, mapping, new_mapping
-						print >> ERROR_LOG, "Inconsistency in computing: move gain", cur_match_num, mv_gain, \
-							new_match_num
+						print(mapping, new_mapping, file=ERROR_LOG)
+						print("Inconsistency in computing: move gain", cur_match_num, mv_gain, \
+							new_match_num, file=ERROR_LOG)
 				if mv_gain > largest_gain:
 					largest_gain = mv_gain
 					node1 = i
@@ -791,21 +792,21 @@ def get_best_gain(mapping, candidate_mappings, weight_dict, num_vars, cur_match_
 			# j starts from i+1, to avoid duplicate swap
 			
 			if veryVerbose:
-				print >> DEBUG_LOG, "Swap node", i, "and", j
-				print >> DEBUG_LOG, "Before swapping:", i, "-", m, ",", j, "-", m2
-				print >> DEBUG_LOG, mapping
-				print >> DEBUG_LOG, "After swapping:", i, "-", m2, ",", j, "-", m
+				print("Swap node", i, "and", j, file=DEBUG_LOG)
+				print("Before swapping:", i, "-", m, ",", j, "-", m2, file=DEBUG_LOG)
+				print(mapping, file=DEBUG_LOG)
+				print("After swapping:", i, "-", m2, ",", j, "-", m, file=DEBUG_LOG)
 			sw_gain = swap_gain(mapping, i, m, j, m2, weight_dict, cur_match_num, match_triple_dict)
 			if veryVerbose:
-				print >> DEBUG_LOG, "Swap gain:", sw_gain
+				print("Swap gain:", sw_gain, file=DEBUG_LOG)
 				new_mapping = mapping[:]
 				new_mapping[i] = m2
 				new_mapping[j] = m
-				print >> DEBUG_LOG, new_mapping
+				print(new_mapping, file=DEBUG_LOG)
 				new_match_num = compute_match(new_mapping, weight_dict, match_triple_dict)
 				if new_match_num != cur_match_num + sw_gain:
-					print >> ERROR_LOG, match, new_match
-					print >> ERROR_LOG, "Inconsistency in computing: swap gain", cur_match_num, sw_gain, new_match_num
+					print(match, new_match, file=ERROR_LOG)
+					print("Inconsistency in computing: swap gain", cur_match_num, sw_gain, new_match_num, file=ERROR_LOG)
 			if sw_gain > largest_gain:
 				largest_gain = sw_gain
 				node1 = i
@@ -816,22 +817,22 @@ def get_best_gain(mapping, candidate_mappings, weight_dict, num_vars, cur_match_
 	if node1 is not None:
 		if use_swap:
 			if veryVerbose:
-				print >> DEBUG_LOG, "Use swap gain"
+				print("Use swap gain", file=DEBUG_LOG)
 			temp = cur_mapping[node1]
 			cur_mapping[node1] = cur_mapping[node2]
 			cur_mapping[node2] = temp
 		else:
 			if veryVerbose:
-				print >> DEBUG_LOG, "Use move gain"
+				print("Use move gain", file=DEBUG_LOG)
 			cur_mapping[node1] = node2
 	else:
 		if veryVerbose:
-			print >> DEBUG_LOG, "no move/swap gain found"
+			print("no move/swap gain found", file=DEBUG_LOG)
 
 	if veryVerbose:
-		print >> DEBUG_LOG, "Original mapping", mapping
-		print >> DEBUG_LOG, "Current mapping", cur_mapping
-		print 'Largest gain', largest_gain
+		print("Original mapping", mapping, file=DEBUG_LOG)
+		print("Current mapping", cur_mapping, file=DEBUG_LOG)
+		print('Largest gain', largest_gain)
 	
 	return largest_gain, cur_mapping
 
@@ -860,14 +861,14 @@ def compute_f(match_num, test_num, gold_num, significant, f_only):
 	if (precision + recall) != 0:
 		f_score = round(2 * precision * recall / (precision + recall), significant)
 		if veryVerbose:
-			print >> DEBUG_LOG, "F-score:", f_score
+			print("F-score:", f_score, file=DEBUG_LOG)
 		if f_only:
 			return f_score
 		else:
 			return precision, recall, f_score
 	else:
 		if veryVerbose:
-			print >> DEBUG_LOG, "F-score:", "0.0"
+			print("F-score:", "0.0", file=DEBUG_LOG)
 		if f_only:
 			return 0.00
 		else:
@@ -895,11 +896,11 @@ def get_triples(f, sense, prod_bool):
 	
 	if prod_bool:	#print sense information to screen if we don't do normal
 		if sense == 'wrong' and prod_bool:
-			print 'Doing sense experiment in which sense of concepts is always wrong (.00)\n'
+			print('Doing sense experiment in which sense of concepts is always wrong (.00)\n')
 		elif sense == 'base' and prod_bool:
-			print 'Doing sense experiment in which sense of concepts is always baseline (.01)\n'	
+			print('Doing sense experiment in which sense of concepts is always baseline (.01)\n')	
 		elif sense == 'ignore':
-			print 'Doing sense experiment in which we ignore sense of concepts (so always correct)\n'
+			print('Doing sense experiment in which we ignore sense of concepts (so always correct)\n')
 	
 	triple_list = []
 	cur_triples = []
@@ -932,7 +933,7 @@ def get_triples(f, sense, prod_bool):
 						
 					cur_triples.append(triple)			
 				except:
-					print 'Triple incorrectly format at line {0}\nFor line: {1}\nExiting...'.format(idx, line)
+					print('Triple incorrectly format at line {0}\nFor line: {1}\nExiting...'.format(idx, line))
 					sys.exit(1)	
 	
 	if cur_triples:		#no newline at the end, still add the DRG
@@ -1154,7 +1155,7 @@ def create_tab_list(print_rows, print_item):
 			return_rows.append("| ".join(word.ljust(col_widths[col_idx]) for col_idx, word in enumerate(row)))
 		
 		for r in return_rows:
-			print r
+			print(r)
 		
 	return return_rows
 		
@@ -1212,27 +1213,27 @@ def get_matching_triples(arg_list):
 	num_triples = len(attributes1) + len(relation1)
 	
 	if single and (args.max_triples > 0 and (len(attributes1) + len(relation1) > args.max_triples or len(attributes2) + len(relation2) > args.max_triples)):
-		print 'Skip calculation of DRG, triples longer than max of {0}'.format(args.max_triples)
+		print('Skip calculation of DRG, triples longer than max of {0}'.format(args.max_triples))
 		return []
 	
 	if verbose:
 		# print parse results of two AMRs
-		print >> DEBUG_LOG, "DRS pair"
-		print >> DEBUG_LOG, "============================================"
-		print >> DEBUG_LOG, "Attribute triples of DRG 1:", len(attributes1)
-		print >> DEBUG_LOG, attributes1
-		print >> DEBUG_LOG, "Relation triples of DRG 1:", len(relation1)
-		print >> DEBUG_LOG, relation1
-		print >> DEBUG_LOG, "Attribute triples of DRG 2:", len(attributes2)
-		print >> DEBUG_LOG, attributes2
-		print >> DEBUG_LOG, "Relation triples of DRG 2:", len(relation2)
-		print >> DEBUG_LOG, relation2
+		print("DRS pair", file=DEBUG_LOG)
+		print("============================================", file=DEBUG_LOG)
+		print("Attribute triples of DRG 1:", len(attributes1), file=DEBUG_LOG)
+		print(attributes1, file=DEBUG_LOG)
+		print("Relation triples of DRG 1:", len(relation1), file=DEBUG_LOG)
+		print(relation1, file=DEBUG_LOG)
+		print("Attribute triples of DRG 2:", len(attributes2), file=DEBUG_LOG)
+		print(attributes2, file=DEBUG_LOG)
+		print("Relation triples of DRG 2:", len(relation2), file=DEBUG_LOG)
+		print(relation2, file=DEBUG_LOG)
 	(best_mapping, best_match_num, found_idx, restarts_done, avg_f, smart_fscores) = get_best_match(attributes1, relation1, attributes2, relation2,
 													prefix1, prefix2, var_count1, var_types1, var_types2, var_map_prod, var_map_gold, prin, single, significant, memory_limit, counter)
 																								
 	if verbose:
-		print >> DEBUG_LOG, "best match number", best_match_num
-		print >> DEBUG_LOG, "best node mapping", best_mapping
+		print("best match number", best_match_num, file=DEBUG_LOG)
+		print("best node mapping", best_mapping, file=DEBUG_LOG)
 	
 	test_triple_num =  len(attributes1) + len(relation1)	
 	gold_triple_num =  len(attributes2) + len(relation2)
@@ -1260,9 +1261,9 @@ def print_results(res_list, no_print, start_time, prin, ms, smart, restarts, sig
 	runtime 		= round(time.time() - start_time, significant)
 	
 	if verbose:
-		print >> DEBUG_LOG, "Total match number, total triple number in DRS 1, and total triple number in DRS 2:"
-		print >> DEBUG_LOG, total_match_num, total_test_num, total_gold_num
-		print >> DEBUG_LOG, "---------------------------------------------------------------------------------"
+		print("Total match number, total triple number in DRS 1, and total triple number in DRS 2:", file=DEBUG_LOG)
+		print(total_match_num, total_test_num, total_gold_num, file=DEBUG_LOG)
+		print("---------------------------------------------------------------------------------", file=DEBUG_LOG)
 	
 	## output document-level dmatch score (a single f-score for all DRG pairs in two files) ##
 	
@@ -1273,23 +1274,23 @@ def print_results(res_list, no_print, start_time, prin, ms, smart, restarts, sig
 	elif no_print: #averaging over multiple runs, don't print results
 		return [precision, recall, best_f_score]
 	else:
-		print '\n## Triple information ##\n'
-		print 'Triples prod : {0}'.format(total_test_num)	
-		print 'Triples gold : {0}\n'.format(total_gold_num)
-		print 'Max number of triples per DRG (0 means no limit): {0}\n'.format(max_triples)
-		print '## Main Results ##\n'
+		print('\n## Triple information ##\n')
+		print('Triples prod : {0}'.format(total_test_num))	
+		print('Triples gold : {0}\n'.format(total_gold_num))
+		print('Max number of triples per DRG (0 means no limit): {0}\n'.format(max_triples))
+		print('## Main Results ##\n')
 		if not single:
-			print 'All shown number are averages calculated over {0} DRG-pairs\n'.format(len(res_list))
-		print 'Matching triples: {0}\n'.format(total_match_num)
+			print('All shown number are averages calculated over {0} DRG-pairs\n'.format(len(res_list)))
+		print('Matching triples: {0}\n'.format(total_match_num))
 		if pr_flag:
-			print "Precision: {0}".format(round(precision, significant))
-			print "Recall   : {0}".format(round(recall, significant))
-			print "F-score  : {0}".format(round(best_f_score, significant))
+			print("Precision: {0}".format(round(precision, significant)))
+			print("Recall   : {0}".format(round(recall, significant)))
+			print("F-score  : {0}".format(round(best_f_score, significant)))
 		else:
-			print "F-score  : {0}".format(round(best_f_score, significant))
+			print("F-score  : {0}".format(round(best_f_score, significant)))
 		
 		if prin:	#print specific output here
-			print '\n## Detailed F-scores ##\n'
+			print('\n## Detailed F-scores ##\n')
 			if smart != 'no':
 				smart_first = compute_f(sum([y[0] for y in [x[3] for x in res_list]]), total_test_num, total_gold_num, significant, True)
 			
@@ -1299,28 +1300,28 @@ def print_results(res_list, no_print, start_time, prin, ms, smart, restarts, sig
 				smart_init  = compute_f(sum([y[2] for y in [x[3] for x in res_list]]), total_test_num, total_gold_num, significant, True)
 				smart_conc  = compute_f(sum([y[3] for y in [x[3] for x in res_list]]), total_test_num, total_gold_num, significant, True)
 				
-				print 'Smart attribute F-score      : {0}'.format(smart_att)
-				print 'Smart order F-score          : {0}'.format(smart_order)
-				print 'Smart F-score initial matches: {0}'.format(smart_init)
-				print 'Smart F-score concepts       : {0}'.format(smart_conc)
+				print('Smart attribute F-score      : {0}'.format(smart_att))
+				print('Smart order F-score          : {0}'.format(smart_order))
+				print('Smart F-score initial matches: {0}'.format(smart_init))
+				print('Smart F-score concepts       : {0}'.format(smart_conc))
 			elif smart == 'att':
-				print 'Smart attribute F-score: {0}'.format(smart_first)
+				print('Smart attribute F-score: {0}'.format(smart_first))
 			elif smart == 'order':		
-				print 'Smart order F-score: {0}'.format(smart_first)
+				print('Smart order F-score: {0}'.format(smart_first))
 			elif smart == 'init':
-				print 'Smart F-score initial matches: {0}'.format(smart_first)
+				print('Smart F-score initial matches: {0}'.format(smart_first))
 			elif smart == 'conc':
-				print 'Smart F-score concepts: {0}'.format(smart_first)
+				print('Smart F-score concepts: {0}'.format(smart_first))
 			
 			if single:	#averaging does not make for multiple DRGs	
-				print 'Avg F-score over all restarts: {0}'.format(avg_f)
+				print('Avg F-score over all restarts: {0}'.format(avg_f))
 			
-			print '\n## Restarts and processing time ##\n'
+			print('\n## Restarts and processing time ##\n')
 			
-			print 'Num restarts specified       : {0}'.format(restarts)
-			print 'Num restarts performed       : {0}'.format(restarts_done)
-			print 'Found best mapping at restart: {0}'.format(int(found_idx))
-			print 'Total processing time        : {0} sec'.format(runtime)
+			print('Num restarts specified       : {0}'.format(restarts))
+			print('Num restarts performed       : {0}'.format(restarts_done))
+			print('Found best mapping at restart: {0}'.format(int(found_idx)))
+			print('Total processing time        : {0} sec'.format(runtime))
 
 	return [precision, recall, best_f_score]
 
@@ -1363,24 +1364,24 @@ def main(arguments):
 	
 	if args.baseline:		#if we try a baseline DRG, we have to fill a list of this baseline
 		if len(triples_prod_list) == 1:
-			print 'Testing baseline DRGs vs {0} DRGs...\n'.format(len(triples_gold_list))
+			print('Testing baseline DRGs vs {0} DRGs...\n'.format(len(triples_gold_list)))
 			triples_prod_list = fill_baseline_list(triples_prod_list[0], triples_gold_list)
 		else:
 			raise ValueError("Using --baseline, but there is more than 1 DRG in prod file")
 	elif len(triples_prod_list) != len(triples_gold_list):
-		print "Number of DRGs not equal, {0} vs {1}, exiting...".format(len(triples_prod_list), len(triples_gold_list))
+		print("Number of DRGs not equal, {0} vs {1}, exiting...".format(len(triples_prod_list), len(triples_gold_list)))
 		sys.exit(0)
 	elif len(triples_prod_list) == 0 and len(triples_gold_list) == 0:
-		print "Both DRGs empty, exiting..."
+		print("Both DRGs empty, exiting...")
 		sys.exit(0)
 	elif not single:
-		print '\nComparing {0} DRGs...\n'.format(len(triples_gold_list))	
+		print('\nComparing {0} DRGs...\n'.format(len(triples_gold_list)))	
 	
 	counter = 0
 	res = []
 	
 	if args.max_triples > 0 and not single:	#print number of DRGs we skip due to the -max_triples parameter
-		print 'Skipping {0} DRGs due to their length exceeding {1} (-max_triples)\n'.format(len([x for x,y in zip(triples_gold_list, triples_prod_list) if (len(x) > args.max_triples or len(y) > args.max_triples)]), args.max_triples)
+		print('Skipping {0} DRGs due to their length exceeding {1} (-max_triples)\n'.format(len([x for x,y in zip(triples_gold_list, triples_prod_list) if (len(x) > args.max_triples or len(y) > args.max_triples)]), args.max_triples))
 	
 	## Processing triples ##
 	
@@ -1407,17 +1408,17 @@ def main(arguments):
 			if all_results[0]:
 				res.append(print_results(all_results, no_print, start, args.prin, args.ms, args.smart, args.restarts, args.significant, args.max_triples, single))
 			else:
-				print 'No results found, exiting..'	
+				print('No results found, exiting..')	
 		else:
-			print 'No results found, exiting..'		
+			print('No results found, exiting..')		
 	
 	## If multiple runs, print averages ##
 	
 	if res and args.runs > 1:
-		print 'Average scores over {0} runs:\n'.format(args.runs)
-		print 'Precision: {0}'.format(round(float(sum([x[0] for x in res])) / float(args.runs), args.significant))
-		print 'Recall   : {0}'.format(round(float(sum([x[1] for x in res])) / float(args.runs), args.significant))
-		print 'F-score  : {0}'.format(round(float(sum([x[2] for x in res])) / float(args.runs), args.significant))
+		print('Average scores over {0} runs:\n'.format(args.runs))
+		print('Precision: {0}'.format(round(float(sum([x[0] for x in res])) / float(args.runs), args.significant)))
+		print('Recall   : {0}'.format(round(float(sum([x[1] for x in res])) / float(args.runs), args.significant)))
+		print('F-score  : {0}'.format(round(float(sum([x[2] for x in res])) / float(args.runs), args.significant)))
 
 
 def build_arg_parser():
@@ -1466,15 +1467,15 @@ def build_arg_parser():
 		raise ValueError("All smart mappings is already 4 restarts, therefore -r should at least be 4, not {0}".format(args.restarts))	
 	
 	if args.ms and args.parallel > 1:
-		print 'WARNING: using -ms and -par > 1 messes up printing to screen - not recommended'
+		print('WARNING: using -ms and -par > 1 messes up printing to screen - not recommended')
 		time.sleep(5) #so people can still read the warning
 	
 	elif (args.vv or args.v) and args.parallel > 1:
-		print 'WARNING: using -vv or -v and par > 1 messes up printing to screen - not recommended'
+		print('WARNING: using -vv or -v and par > 1 messes up printing to screen - not recommended')
 		time.sleep(5) #so people can still read the warning	
 	
 	if args.runs > 1 and args.prin:
-		print 'WARNING: we do not print specific information (-prin) for runs > 1, only final averages'
+		print('WARNING: we do not print specific information (-prin) for runs > 1, only final averages')
 		time.sleep(5)
 	
 	return args	

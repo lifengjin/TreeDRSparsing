@@ -1,31 +1,31 @@
 import argparse
-from system import system_check_and_init
-from utils import read_input
-from utils import read_input_test
-from utils import get_singleton_dict
-from utils import input2instance
-from utils import read_tree
-from utils import tree2action as tree2action
-from utils import get_same_lemma
+from .system import system_check_and_init
+from .utils import read_input
+from .utils import read_input_test
+from .utils import get_singleton_dict
+from .utils import input2instance
+from .utils import read_tree
+from .utils import tree2action as tree2action
+from .utils import get_same_lemma
 
-from dictionary.vocabulary import vocabulary
-from dictionary.PretrainedEmb import PretrainedEmb
-from representation.sentence_rep import sentence_rep
+from .dictionary.vocabulary import vocabulary
+from .dictionary.PretrainedEmb import PretrainedEmb
+from .representation.sentence_rep import sentence_rep
 
-from encoder.bilstm import encoder_srnn as enc 
-from decoder.lstm import decoder as dec
+from .encoder.bilstm import encoder_srnn as enc 
+from .decoder.lstm import decoder as dec
 
-from utils import get_k_scope
-from utils import get_p_max
-from constraints.constraints import struct_constraints
-from constraints.constraints import struct_constraints_state
-from constraints.constraints import relation_constraints
-from constraints.constraints import relation_constraints_state
-from constraints.constraints import variable_constraints
-from constraints.constraints import variable_constraints_state
+from .utils import get_k_scope
+from .utils import get_p_max
+from .constraints.constraints import struct_constraints
+from .constraints.constraints import struct_constraints_state
+from .constraints.constraints import relation_constraints
+from .constraints.constraints import relation_constraints_state
+from .constraints.constraints import variable_constraints
+from .constraints.constraints import variable_constraints_state
 
 import torch
-from optimizer import optimizer
+from .optimizer import optimizer
 
 import types
 import sys
@@ -548,14 +548,14 @@ class Demo:
 			self.extra_vl[i].read_file(args.model_path_base+"/extra."+str(i+1)+".list")
 			self.extra_vl[i].freeze()
 
-		print "word vocabulary size:", self.word_v.size()
-		print "char vocabulary size:", self.char_v.size() 
-		print "pretrain vocabulary size:", self.pretrain.size()
+		print("word vocabulary size:", self.word_v.size())
+		print("char vocabulary size:", self.char_v.size()) 
+		print("pretrain vocabulary size:", self.pretrain.size())
 		self.extra_vl_size = []
 		for i in range(len(self.extra_vl)):
-			print "extra", i, "vocabulary size:", self.extra_vl[i].size()
+			print("extra", i, "vocabulary size:", self.extra_vl[i].size())
 			self.extra_vl_size.append(self.extra_vl[i].size())
-		print "action vocaluary size:", self.actn_v.size() 
+		print("action vocaluary size:", self.actn_v.size()) 
 
 		self.input_representation = sentence_rep(self.word_v.size(), self.char_v.size(), self.pretrain, self.extra_vl_size, self.args)
 		self.encoder = None

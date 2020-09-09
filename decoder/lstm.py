@@ -18,10 +18,10 @@ class Beam:
 		self.next_hidden_t = None
 
 	def show(self):
-		print "prev_beam_idx", self.prev_beam_idx
-		print "score", self.score
-		print "token", self.token
-		print "output_t", self.output_t
+		print("prev_beam_idx", self.prev_beam_idx)
+		print("score", self.score)
+		print("token", self.token)
+		print("output_t", self.output_t)
 class decoder(nn.Module):
 	def __init__(self, action_size, args, actn_v, constraints):
 		super(decoder, self).__init__()
@@ -309,8 +309,8 @@ class decoder(nn.Module):
 			for struct, rels, p in input:
 				List = [self.struct2rel(struct).view(1, 1, -1)]
 				for rel in rels[:-1]: # rel( rel( rel( )
-					assert type(rel) != types.NoneType
-					if type(rel) == types.StringType:
+					assert type(rel) != type(None)
+					if type(rel) == bytes:
 						assert p != -1
 						List.append(self.copy(copy_rep_t[p][int(rel[1:-1])].view(1, 1, -1)))
 						#List.append(self.copy(input_rep_t[int(rel[1:-1])+1].view(1, 1, -1)))
@@ -348,7 +348,7 @@ class decoder(nn.Module):
 
 				g_List = []
 				for i in range(len(rels)):
-		   			if type(rels[i]) == types.StringType:
+		   			if type(rels[i]) == bytes:
 		   				g_List.append(int(rels[i][1:-1]) + self.action_size)
 		   			else:
 		   				g_List.append(rels[i])
@@ -1055,8 +1055,8 @@ class decoder_soft(nn.Module):
 				List.append(self.struct2rel(struct).view(1, 1, -1))
 				g_List += rels
 				for rel in rels[:-1]: # rel( rel( rel( )
-					assert type(rel) != types.NoneType
-					if type(rel) == types.StringType:
+					assert type(rel) != type(None)
+					if type(rel) == bytes:
 						List.append(self.copy(copy_rep_t[int(rel[1:-1])].view(1, 1, -1)))
 						#List.append(self.copy(input_rep_t[int(rel[1:-1])+1].view(1, 1, -1)))
 					else:
@@ -1096,7 +1096,7 @@ class decoder_soft(nn.Module):
 			log_softmax_output_t = F.log_softmax(total_score, 1)
 
 			for i in range(len(g_List)):
-		   		if type(g_List[i]) == types.StringType:
+		   		if type(g_List[i]) == bytes:
 		   			g_List[i] = int(g_List[i][1:-1]) + self.action_size
 
 			action_g_t = torch.LongTensor(g_List)

@@ -1,31 +1,31 @@
 import argparse
-from system import system_check_and_init
-from utils import read_input
-from utils import read_input_test
-from utils import get_singleton_dict
-from utils import input2instance
-from utils import read_tree
-from utils import tree2action as tree2action
-from utils import get_same_lemma
+from .system import system_check_and_init
+from .utils import read_input
+from .utils import read_input_test
+from .utils import get_singleton_dict
+from .utils import input2instance
+from .utils import read_tree
+from .utils import tree2action as tree2action
+from .utils import get_same_lemma
 
-from dictionary.vocabulary import vocabulary
-from dictionary.PretrainedEmb import PretrainedEmb
-from representation.sentence_rep import sentence_rep
+from .dictionary.vocabulary import vocabulary
+from .dictionary.PretrainedEmb import PretrainedEmb
+from .representation.sentence_rep import sentence_rep
 
-from encoder.bilstm import encoder_srnn as enc 
-from decoder.lstm import decoder as dec
+from .encoder.bilstm import encoder_srnn as enc 
+from .decoder.lstm import decoder as dec
 
-from utils import get_k_scope
-from utils import get_p_max
-from constraints.constraints import struct_constraints
-from constraints.constraints import struct_constraints_state
-from constraints.constraints import relation_constraints
-from constraints.constraints import relation_constraints_state
-from constraints.constraints import variable_constraints
-from constraints.constraints import variable_constraints_state
+from .utils import get_k_scope
+from .utils import get_p_max
+from .constraints.constraints import struct_constraints
+from .constraints.constraints import struct_constraints_state
+from .constraints.constraints import relation_constraints
+from .constraints.constraints import relation_constraints_state
+from .constraints.constraints import variable_constraints
+from .constraints.constraints import variable_constraints_state
 
 import torch
-from optimizer import optimizer
+from .optimizer import optimizer
 
 import types
 import sys
@@ -33,9 +33,9 @@ import sys
 def run_train(args):
 	system_check_and_init(args)
 	if args.gpu:
-		print "GPU available"
+		print("GPU available")
 	else:
-		print "CPU only"
+		print("CPU only")
 
 	word_v = vocabulary()
 	char_v = vocabulary()
@@ -92,18 +92,18 @@ def run_train(args):
 	#print train_action[0][0]
 	#print train_action[0][1]
 	#print train_action[0][2]
-	print "word vocabulary size:", word_v.size()
+	print(("word vocabulary size:", word_v.size()))
 	word_v.dump(args.model_path_base+"/word.list")
-	print "char vocabulary size:", char_v.size()
+	print(("char vocabulary size:", char_v.size()))
 	if args.use_char:
 		char_v.dump(args.model_path_base+"/char.list")
-	print "pretrain vocabulary size:", pretrain.size()
+	print(("pretrain vocabulary size:", pretrain.size()))
 	extra_vl_size = []
 	for i in range(len(extra_vl)):
-		print "extra", i, "vocabulary size:", extra_vl[i].size()
+		print(("extra", i, "vocabulary size:", extra_vl[i].size()))
 		extra_vl[i].dump(args.model_path_base+"/extra."+str(i+1)+".list")
 		extra_vl_size.append(extra_vl[i].size())
-	print "action vocaluary size:", actn_v.size()
+	print(("action vocaluary size:", actn_v.size()))
 	
 	#actn_v.dump()
 
@@ -213,7 +213,7 @@ def run_train(args):
 		for j in range(len(flat_train_action)):
 			tok = flat_train_action[j]
 			#print tok
-			if (type(tok) == types.StringType and tok[-1] == "(") or actn_v.totok(tok)[-1] == "(":
+			if (type(tok) == bytes and tok[-1] == "(") or actn_v.totok(tok)[-1] == "(":
 				train_action_step3.append([hidden_rep_t[j], train_action[i][2][idx]])
 				#train_pointer_step3 += train_action[i][5][idx]
 				idx += 1
@@ -223,7 +223,7 @@ def run_train(args):
 		#check_loss3_p += loss_p_t3.data.tolist()
 
 		if check_iter % args.check_per_update == 0:
-			print('epoch %.3f : structure %.5f, relation %.5f, variable %.5f, str_p %.5f' % (check_iter*1.0/len(train_instance), check_loss1*1.0 / args.check_per_update, check_loss2*1.0 / args.check_per_update, check_loss3*1.0 / args.check_per_update, check_loss1_p*1.0 / args.check_per_update))
+			print(('epoch %.3f : structure %.5f, relation %.5f, variable %.5f, str_p %.5f' % (check_iter*1.0/len(train_instance), check_loss1*1.0 / args.check_per_update, check_loss2*1.0 / args.check_per_update, check_loss3*1.0 / args.check_per_update, check_loss1_p*1.0 / args.check_per_update)))
 			check_loss1 = 0
 			check_loss2 = 0
 			check_loss3 = 0
@@ -259,7 +259,7 @@ def test(args, output_file, test_instance, test_sep, test_comb, test_input, actn
 	test_outputs = []
 	with open(output_file, "w") as w:
 		for j, instance in enumerate(test_instance):
-			print j
+			print(j)
 			test_input_t = input_representation(instance, singleton_idx_dict=None, train=False)
 			test_word_rep_t, test_sent_rep_t, test_copy_rep_t, test_hidden_t= encoder(test_input_t, test_comb[j], test_sep[j], train=False)
 
@@ -418,14 +418,14 @@ def run_test(args):
 		extra_vl[i].read_file(args.model_path_base+"/extra."+str(i+1)+".list")
 		extra_vl[i].freeze()
 
-	print "word vocabulary size:", word_v.size()
-	print "char vocabulary size:", char_v.size() 
-	print "pretrain vocabulary size:", pretrain.size()
+	print(("word vocabulary size:", word_v.size()))
+	print(("char vocabulary size:", char_v.size())) 
+	print(("pretrain vocabulary size:", pretrain.size()))
 	extra_vl_size = []
 	for i in range(len(extra_vl)):
-		print "extra", i, "vocabulary size:", extra_vl[i].size()
+		print(("extra", i, "vocabulary size:", extra_vl[i].size()))
 		extra_vl_size.append(extra_vl[i].size())
-	print "action vocaluary size:", actn_v.size() 
+	print(("action vocaluary size:", actn_v.size())) 
 
 	input_representation = sentence_rep(word_v.size(), char_v.size(), pretrain, extra_vl_size, args)
 	encoder = None
@@ -543,14 +543,14 @@ class Demo:
 			self.extra_vl[i].read_file(args.model_path_base+"/extra."+str(i+1)+".list")
 			self.extra_vl[i].freeze()
 
-		print "word vocabulary size:", self.word_v.size()
-		print "char vocabulary size:", self.char_v.size() 
-		print "pretrain vocabulary size:", self.pretrain.size()
+		print(("word vocabulary size:", self.word_v.size()))
+		print(("char vocabulary size:", self.char_v.size())) 
+		print(("pretrain vocabulary size:", self.pretrain.size()))
 		self.extra_vl_size = []
 		for i in range(len(self.extra_vl)):
-			print "extra", i, "vocabulary size:", self.extra_vl[i].size()
+			print(("extra", i, "vocabulary size:", self.extra_vl[i].size()))
 			self.extra_vl_size.append(self.extra_vl[i].size())
-		print "action vocaluary size:", self.actn_v.size() 
+		print(("action vocaluary size:", self.actn_v.size())) 
 
 		self.input_representation = sentence_rep(self.word_v.size(), self.char_v.size(), self.pretrain, self.extra_vl_size, self.args)
 		self.encoder = None
@@ -635,7 +635,7 @@ class Demo:
 				idx = int(trees[j][1:-1])
 				trees[j] = lems[cur][idx]+"("
 			j += 1
-		print " ".join(trees)
+		print((" ".join(trees)))
 
 	def test(self, docs):
 		tokenizer = nltk.tokenize.TreebankWordTokenizer()
@@ -807,9 +807,9 @@ def run_check(args):
 	actn_v.toidx("TIME_NUMBER")
 	actn_v.toidx(")")
 
-	print actn_v.size()
+	print((actn_v.size()))
 	actn_v.read_file(args.action_dict_path)
-	print actn_v.size()
+	print((actn_v.size()))
 	actn_v.freeze()
 
 	train_input = read_input(args.train_input)
@@ -818,7 +818,7 @@ def run_check(args):
 	#dev_output = read_output(args.dev_action)
 	train_action = tree2action(train_output, actn_v, [cstn_step1, cstn_step2, cstn_step3])
 	#dev_actoin, actn_v = output2action(dev_output, actn_v)
-	print "action vocaluary size:", actn_v.size()
+	print(("action vocaluary size:", actn_v.size()))
 
 	#check dict to get index
 	#BOX DISCOURSE RELATION PREDICATE CONSTANT
@@ -850,7 +850,7 @@ def run_check(args):
 
 		#print action_step2
 		line += 1
-		print line
+		print(line)
 		cstns1.reset()
 		#processed_act = []
 		idx = 0
@@ -915,7 +915,7 @@ def run_check(args):
 					cstn = cstns2.get_step_mask()
 					#cstns2._print_state()
 
-					if type(a) == types.StringType:
+					if type(a) == bytes:
 						#print a
 						assert cstn[int(a[1:-1])+actn_v.size()] == 1
 					else:
@@ -923,8 +923,8 @@ def run_check(args):
 						assert cstn[a] == 1
 					cstns2.update(a)
 
-					if type(a) == types.StringType or a != actn_v.toidx(")"):
-						if type(a) == types.StringType:
+					if type(a) == bytes or a != actn_v.toidx(")"):
+						if type(a) == bytes:
 							a = int(a[1:-1])+actn_v.size()
 						cstns3.reset_relation(a)
 						for v in action_step3[idx2]:
@@ -942,7 +942,7 @@ def run_check(args):
 				idx += 1
 
 def assign_hypers(subparser, hypers):
-	for key in hypers.keys():
+	for key in list(hypers.keys()):
 		if key[-3:] == "dim" or key[-5:] == "layer" or key[-2:] == "-l":
 			subparser.add_argument("--"+key, default=int(hypers[key]))
 		elif key[-4:] == "prob" or key[-2:] == "-f":

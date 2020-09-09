@@ -41,7 +41,8 @@ import multiprocessing
 from multiprocessing import Pool
 import json #reading in dict
 from numpy import median
-reload(sys)
+import importlib
+importlib.reload(sys)
 sys.setdefaultencoding('utf-8')  # necessary to avoid unicode errors
 import psutil  # for memory usage
 
@@ -101,15 +102,15 @@ def build_arg_parser():
 		raise ValueError('Number of restarts must be larger than 0')
 
 	if args.ms and args.parallel > 1:
-		print 'WARNING: using -ms and -p > 1 messes up printing to screen - not recommended'
+		print('WARNING: using -ms and -p > 1 messes up printing to screen - not recommended')
 		time.sleep(5)  # so people can still read the warning
 
 	elif (args.vv or args.v) and args.parallel > 1:
-		print 'WARNING: using -vv or -v and -p > 1 messes up printing to screen - not recommended'
+		print('WARNING: using -vv or -v and -p > 1 messes up printing to screen - not recommended')
 		time.sleep(5)  # so people can still read the warning
 
 	if args.partial:
-		print 'WARNING: partial matching is an experimental setting!'
+		print('WARNING: partial matching is an experimental setting!')
 		time.sleep(5)
 	return args
 
@@ -186,8 +187,8 @@ def get_best_match(prod_drs, gold_drs, args, single):
 		match_num = map_cur[1]
 		num_vars = len(gold_drs.var_map)
 		if veryVerbose:
-			print >> DEBUG_LOG, "Node mapping at start", cur_mapping
-			print >> DEBUG_LOG, "Clause match number at start:", match_num
+			print("Node mapping at start", cur_mapping, file=DEBUG_LOG)
+			print("Clause match number at start:", match_num, file=DEBUG_LOG)
 
 		if tuple(cur_mapping) in done_mappings:
 			match_num = done_mappings[tuple(cur_mapping)]
@@ -198,25 +199,25 @@ def get_best_match(prod_drs, gold_drs, args, single):
 				(gain, new_mapping, match_clause_dict) = get_best_gain(cur_mapping, candidate_mappings, weight_dict, num_vars, match_clause_dict)
 
 				if veryVerbose:
-					print >> DEBUG_LOG, "Gain after the hill-climbing", gain
+					print("Gain after the hill-climbing", gain, file=DEBUG_LOG)
 
 				if match_num + gain > prod_drs.total_clauses:
-					print new_mapping, match_num + gain, prod_drs.total_clauses
+					print(new_mapping, match_num + gain, prod_drs.total_clauses)
 					raise ValueError(
 						"More matches than there are produced clauses. If this ever occurs something is seriously wrong with the algorithm")
 
 				if gain <= 0:
 					# print 'No gain so break'
-					print "mapping:",cur_mapping
-					print "match_num:",match_num
+					print("mapping:",cur_mapping)
+					print("match_num:",match_num)
 					break
 				# otherwise update match_num and mapping
 				match_num += gain
 
 				cur_mapping = new_mapping[:]
 				if veryVerbose:
-					print >> DEBUG_LOG, "Update clause match number to:", match_num
-					print >> DEBUG_LOG, "Current mapping:", cur_mapping
+					print("Update clause match number to:", match_num, file=DEBUG_LOG)
+					print("Current mapping:", cur_mapping, file=DEBUG_LOG)
 
 			# Save mappings we already did
 			done_mappings[tuple(cur_mapping)] = match_num
@@ -238,7 +239,7 @@ def get_best_match(prod_drs, gold_drs, args, single):
 		# mappings
 		if match_num == prod_drs.total_clauses and i > len(smart_fscores) - 1:
 			if args.prin and single:
-				print 'Best match already found, stop restarts at restart {0}'.format(i)
+				print('Best match already found, stop restarts at restart {0}'.format(i))
 			if i < len(smart_fscores):
 				smart_fscores[i] = match_num
 			break
@@ -258,7 +259,7 @@ def get_best_match(prod_drs, gold_drs, args, single):
 def add_random_mapping(result, matched_dict, candidate_mapping):
 	'''If mapping is still -1 after adding a smart mapping, randomly fill in the blanks'''
 	# First shuffle the way we loop over result, so that we increase the randomness of the mappings
-	indices = range(len(result))
+	indices = list(range(len(result)))
 	random.shuffle(indices)
 	for idx in indices:
 		if result[idx] == -1:  # no mapping yet
@@ -957,14 +958,14 @@ def compute_f(match_num, test_num, gold_num, significant, f_only):
 	if (precision + recall) != 0:
 		f_score = round(2 * precision * recall / (precision + recall), significant)
 		if veryVerbose:
-			print >> DEBUG_LOG, "F-score:", f_score
+			print("F-score:", f_score, file=DEBUG_LOG)
 		if f_only:
 			return f_score
 		else:
 			return precision, recall, f_score
 	else:
 		if veryVerbose:
-			print >> DEBUG_LOG, "F-score:", "0.0"
+			print("F-score:", "0.0", file=DEBUG_LOG)
 		if f_only:
 			return 0.00
 		else:
@@ -1188,17 +1189,17 @@ def get_matching_clauses(arg_list):
 	gold_drs.get_specific_clauses(gold_t, en_sense_dict)
 
 	if single and (args.max_clauses > 0 and ((prod_drs.total_clauses > args.max_clauses) or (gold_drs.total_clauses > args.max_clauses))):
-		print 'Skip calculation of DRS, more clauses than max of {0}'.format(args.max_clauses)
+		print('Skip calculation of DRS, more clauses than max of {0}'.format(args.max_clauses))
 	else:
 		# Do the hill-climbing for the matching here
 		(best_mapping, best_match_num, found_idx, smart_fscores, clause_pairs) = get_best_match(prod_drs, gold_drs, args, single)
-		print "best_mapping:", best_mapping
+		print("best_mapping:", best_mapping)
 		if len(set([x for x in best_mapping if x != -1])) != len([x for x in best_mapping if x != -1]):
 			raise ValueError("Variable maps to two other variables, not allowed -- {0}".format(best_mapping))
 
 		if verbose:
-			print >> DEBUG_LOG, "best match number", best_match_num
-			print >> DEBUG_LOG, "best node mapping", best_mapping
+			print("best match number", best_match_num, file=DEBUG_LOG)
+			print("best node mapping", best_mapping, file=DEBUG_LOG)
 
 		(precision, recall, best_f_score) = compute_f(best_match_num, prod_drs.total_clauses, gold_drs.total_clauses, args.significant, False)
 		
@@ -1212,13 +1213,13 @@ def get_matching_clauses(arg_list):
 			uniq_rewrite = []
 			[uniq_rewrite.append(item) for item in rewrite_list if item not in uniq_rewrite] #only unique transformations, but keep order
 			for print_str in uniq_rewrite:
-				print print_str
+				print(print_str)
 
 			# Print match and non-match to screen
 			for print_line in print_match:
-				print print_line
+				print(print_line)
 			for print_line in print_no_match:
-				print print_line
+				print(print_line)
 
 		# For single DRS we print results later on anyway
 		prod_clause_division = [prod_drs.num_operators, prod_drs.num_roles, prod_drs.num_concepts]
@@ -1250,9 +1251,9 @@ def print_results(res_list, start_time, single, args):
 	prec_conc, rec_conc, f_conc = compute_f(sum([x[2] for x in match_division]), sum([x[2] for x in prod_division]), sum([x[2] for x in gold_division]), args.significant, False)
 
 	if verbose:
-		print >> DEBUG_LOG, "Total match number, total clause number in DRS 1, and total clause number in DRS 2:"
-		print >> DEBUG_LOG, total_match_num, total_test_num, total_gold_num
-		print >> DEBUG_LOG, "---------------------------------------------------------------------------------"
+		print("Total match number, total clause number in DRS 1, and total clause number in DRS 2:", file=DEBUG_LOG)
+		print(total_match_num, total_test_num, total_gold_num, file=DEBUG_LOG)
+		print("---------------------------------------------------------------------------------", file=DEBUG_LOG)
 
 	# Output document-level score (a single f-score for all DRS pairs in two files)
 
@@ -1261,49 +1262,49 @@ def print_results(res_list, start_time, single, args):
 	if not res_list:
 		return []  # no results for some reason
 	else:
-		print '\n## Clause information ##\n'
-		print 'Clauses prod : {0}'.format(total_test_num)
-		print 'Clauses gold : {0}\n'.format(total_gold_num)
+		print('\n## Clause information ##\n')
+		print('Clauses prod : {0}'.format(total_test_num))
+		print('Clauses gold : {0}\n'.format(total_gold_num))
 		if args.max_clauses > 0:
-			print 'Max number of clauses per DRS:  {0}\n'.format(args.max_clauses)
-		print '## Main Results ##\n'
+			print('Max number of clauses per DRS:  {0}\n'.format(args.max_clauses))
+		print('## Main Results ##\n')
 		if not single:
-			print 'All shown number are averages calculated over {0} DRS-pairs\n'.format(len(res_list))
-		print 'Matching clauses: {0}\n'.format(total_match_num)
+			print('All shown number are averages calculated over {0} DRS-pairs\n'.format(len(res_list)))
+		print('Matching clauses: {0}\n'.format(total_match_num))
 		if pr_flag:
-			print "Precision: {0}".format(round(precision, args.significant))
-			print "Recall   : {0}".format(round(recall, args.significant))
-			print "F-score  : {0}".format(round(best_f_score, args.significant))
+			print("Precision: {0}".format(round(precision, args.significant)))
+			print("Recall   : {0}".format(round(recall, args.significant)))
+			print("F-score  : {0}".format(round(best_f_score, args.significant)))
 		else:
 			if best_f_score > 1:
 				raise ValueError(
 					"F-score larger than 1: {0}".format(best_f_score))
-			print "F-score  : {0}".format(round(best_f_score, args.significant))
+			print("F-score  : {0}".format(round(best_f_score, args.significant)))
 
 		# Print specific output here
 		if args.prin:
 			if args.pr:
-				print '\n## Detailed precision, recall, F-score ##\n'
-				print 'Prec, rec, F1 operators: {0}, {1}, {2}'.format(prec_op, rec_op, f_op)
-				print 'Prec, rec, F1 roles    : {0}, {1}, {2}'.format(prec_role, rec_role, f_role)
-				print 'Prec, rec, F1 concepts : {0}, {1}, {2}\n'.format(prec_conc, rec_conc, f_conc)
+				print('\n## Detailed precision, recall, F-score ##\n')
+				print('Prec, rec, F1 operators: {0}, {1}, {2}'.format(prec_op, rec_op, f_op))
+				print('Prec, rec, F1 roles    : {0}, {1}, {2}'.format(prec_role, rec_role, f_role))
+				print('Prec, rec, F1 concepts : {0}, {1}, {2}\n'.format(prec_conc, rec_conc, f_conc))
 			else:
-				print '\n## Detailed F-scores ##\n'
-				print 'F-score operators: {0}'.format(f_op)
-				print 'F-score roles    : {0}'.format(f_role)
-				print 'F-score concepts : {0}\n'.format(f_conc)
+				print('\n## Detailed F-scores ##\n')
+				print('F-score operators: {0}'.format(f_op))
+				print('F-score roles    : {0}'.format(f_role))
+				print('F-score concepts : {0}\n'.format(f_conc))
 
 			if args.smart == 'conc':
 				smart_conc = compute_f(sum([y[0] for y in [x[3] for x in res_list]]), total_test_num, total_gold_num, args.significant, True)
-				print 'Smart F-score concepts: {0}'.format(smart_conc)
+				print('Smart F-score concepts: {0}'.format(smart_conc))
 
 			# For a single DRS we can print some more information
 			if single:
-				print '\n## Restarts and processing time ##\n'
-				print 'Num restarts specified       : {0}'.format(args.restarts)
-				print 'Found best mapping at restart: {0}'.format(int(found_idx))
+				print('\n## Restarts and processing time ##\n')
+				print('Num restarts specified       : {0}'.format(args.restarts))
+				print('Found best mapping at restart: {0}'.format(int(found_idx)))
 
-	print 'Total processing time        : {0} sec'.format(runtime)
+	print('Total processing time        : {0} sec'.format(runtime))
 
 	return [precision, recall, best_f_score]
 
@@ -1312,7 +1313,7 @@ def check_input(clauses_prod_list, original_prod, original_gold, clauses_gold_li
 	'''Check if the input is valid -- or fill baseline if that is asked'''
 	if baseline:  # if we try a baseline DRS, we have to fill a list of this baseline
 		if len(clauses_prod_list) == 1:
-			print 'Testing baseline DRS vs {0} DRSs...\n'.format(len(clauses_gold_list))
+			print('Testing baseline DRS vs {0} DRSs...\n'.format(len(clauses_gold_list)))
 			clauses_prod_list = fill_baseline_list(clauses_prod_list[0], clauses_gold_list)
 			original_prod = fill_baseline_list(original_prod[0], original_gold)
 		else:
@@ -1322,11 +1323,11 @@ def check_input(clauses_prod_list, original_prod, original_gold, clauses_gold_li
 	elif len(clauses_prod_list) == 0 and len(clauses_gold_list) == 0:
 		raise ValueError("Both DRSs empty, exiting...")
 	elif not single:
-		print 'Comparing {0} DRSs...\n'.format(len(clauses_gold_list))
+		print('Comparing {0} DRSs...\n'.format(len(clauses_gold_list)))
 
 	# Print number of DRSs we skip due to the -max_clauses parameter
 	if max_clauses > 0 and not single:
-		print 'Skipping {0} DRSs due to their length exceeding {1} (--max_clauses)\n'.format(len([x for x, y in zip(clauses_gold_list, clauses_prod_list) if len(x) > max_clauses or len(y) > max_clauses]), max_clauses)
+		print('Skipping {0} DRSs due to their length exceeding {1} (--max_clauses)\n'.format(len([x for x, y in zip(clauses_gold_list, clauses_prod_list) if len(x) > max_clauses or len(y) > max_clauses]), max_clauses))
 
 	return original_prod, clauses_prod_list
 

@@ -160,20 +160,20 @@ def process(tokens):
 		c = 0
 		for item in tuples:
 			if item[1] in ["NOT", "POS", "NEC", "OR", "IMP", "DUP", "DRS"]:
-				print " ".join(item)
+				print(" ".join(item))
 			else:
-				print item[0], item[1], "c"+str(c)
-				print "c"+str(c), "ARG1", item[2]
+				print(item[0], item[1], "c"+str(c))
+				print("c"+str(c), "ARG1", item[2])
 				if len(item) == 4:
-					print "c"+str(c), "ARG2", item[3]
+					print("c"+str(c), "ARG2", item[3])
 				else:
 					assert len(item) == 3
 				c += 1
-		print 
+		print() 
 	else:
 		for item in tuples:
-			print " ".join(item)
-		print
+			print(" ".join(item))
+		print()
 for line in open(args.input):
 	line = line.strip()
 	assert line[:5] == "SDRS(" or line[:4] == "DRS("

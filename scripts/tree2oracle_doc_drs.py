@@ -76,6 +76,7 @@ def tree2oracle(lemmas, tree, out_action):
 		#global vl
 		parent = root[0]
 		child = root[1:]
+		print(parent)
 		if parent[-1] == "(":
 			if is_struct(parent):
 				if (parent in ["DRS(", "SDRS("]) or d_p.match(parent):
@@ -176,12 +177,12 @@ if __name__ == "__main__":
 			idx = lines.index("TREE")
 			
 			assert idx % 2 == 0 and idx != 0
-			lemmas = " ||| ".join([ lines[i*2+1] for i in range(idx/2) ])
-			lemmas_copy = " ".join([ lines[i*2+1] for i in range(idx/2) ])
-			words = " ||| ".join([ lines[i*2] for i in range(idx/2) ])
+			lemmas = " ||| ".join([ lines[i*2+1] for i in range(idx//2) ])
+			lemmas_copy = " ".join([ lines[i*2+1] for i in range(idx//2) ])
+			words = " ||| ".join([ lines[i*2] for i in range(idx//2) ])
 
 			tree = lines[idx+1].split()
-			if filter(illform, tree):
+			if list(filter(illform, tree)):
 				lines = []
 				continue
 

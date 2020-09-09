@@ -98,7 +98,7 @@ def get_singleton_dict(train_input, word_v):
 				d[w] = 1
 			word_v.toidx(w)
 
-	for key in d.keys():
+	for key in list(d.keys()):
 		if d[key] == 1:
 			singleton_idx_dict[word_v.toidx(key)] = 1
 		else:
@@ -295,7 +295,7 @@ def get_struct_rel_var(tree, actn_v):
 				#	relation[-1].append(actn_v.toidx(parent))
 				
 		else:
-			print parent
+			print(parent)
 			assert False
 	
 	travel(tree)
