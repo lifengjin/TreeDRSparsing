@@ -92,7 +92,7 @@ def tree2oracle(lemmas, tree, out_action):
 				pass
 				
 		else:
-			print parent
+			print(parent)
 			assert False
 	travel(root)
 	#for tok in tree:
