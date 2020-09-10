@@ -320,7 +320,7 @@ class decoder(nn.Module):
                 List = [self.struct2rel(struct).view(1, 1, -1)]
                 for rel in rels[:-1]:  # rel( rel( rel( )
                     assert type(rel) != type(None)
-                    if type(rel) == bytes:
+                    if type(rel) == str:
                         assert p != -1
                         List.append(self.copy(copy_rep_t[p][int(rel[1:-1])].view(1, 1, -1)))
                     # List.append(self.copy(input_rep_t[int(rel[1:-1])+1].view(1, 1, -1)))
