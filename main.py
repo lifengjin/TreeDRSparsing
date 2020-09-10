@@ -645,7 +645,7 @@ class Demo:
         for pos in pos_tokens[0]:
             word, pos_tag = pos
             lemmas.append(lemmatizer.lemmatize(word.lower(), self.get_wordnet_pos(pos_tag)))
-            lemmas[-1] = lemmas[-1].encode("utf8")
+            lemmas[-1] = lemmas[-1] # .encode("utf8")
         return lemmas
 
     def out_tree(self, lemmas, trees):
