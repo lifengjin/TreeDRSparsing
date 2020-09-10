@@ -360,7 +360,7 @@ class decoder(nn.Module):
 
                 g_List = []
                 for i in range(len(rels)):
-                    if type(rels[i]) == bytes:
+                    if type(rels[i]) == str:
                         g_List.append(int(rels[i][1:-1]) + self.action_size)
                     else:
                         g_List.append(rels[i])
@@ -1079,7 +1079,7 @@ class decoder_soft(nn.Module):
                 g_List += rels
                 for rel in rels[:-1]:  # rel( rel( rel( )
                     assert type(rel) != type(None)
-                    if type(rel) == bytes:
+                    if type(rel) == str:
                         List.append(self.copy(copy_rep_t[int(rel[1:-1])].view(1, 1, -1)))
                     # List.append(self.copy(input_rep_t[int(rel[1:-1])+1].view(1, 1, -1)))
                     else:
@@ -1122,7 +1122,7 @@ class decoder_soft(nn.Module):
             log_softmax_output_t = F.log_softmax(total_score, 1)
 
             for i in range(len(g_List)):
-                if type(g_List[i]) == bytes:
+                if type(g_List[i]) == str:
                     g_List[i] = int(g_List[i][1:-1]) + self.action_size
 
             action_g_t = torch.LongTensor(g_List)
