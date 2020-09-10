@@ -1,34 +1,31 @@
 import argparse
-from .system import system_check_and_init
-from .utils import read_input
-from .utils import read_input_test
-from .utils import get_singleton_dict
-from .utils import input2instance
-from .utils import read_tree
-from .utils import tree2action as tree2action
-from .utils import get_same_lemma
+from utils.system import system_check_and_init
+from utils.utils import read_input
+from utils.utils import read_input_test
+from utils.utils import get_singleton_dict
+from utils.utils import input2instance
+from utils.utils import read_tree
+from utils.utils import tree2action as tree2action
+from utils.utils import get_same_lemma
 
-from .dictionary.vocabulary import vocabulary
-from .dictionary.PretrainedEmb import PretrainedEmb
-from .representation.sentence_rep import sentence_rep
+from dictionary.vocabulary import vocabulary
+from dictionary.PretrainedEmb import PretrainedEmb
+from representation.sentence_rep import sentence_rep
 
-from .encoder.bilstm import encoder_srnn as enc
-from .decoder.lstm import decoder as dec
+from encoder.bilstm import encoder_srnn as enc
+from decoder.lstm import decoder as dec
 
-from .utils import get_k_scope
-from .utils import get_p_max
-from .constraints.constraints import struct_constraints
-from .constraints.constraints import struct_constraints_state
-from .constraints.constraints import relation_constraints
-from .constraints.constraints import relation_constraints_state
-from .constraints.constraints import variable_constraints
-from .constraints.constraints import variable_constraints_state
+from utils.utils import get_k_scope
+from utils.utils import get_p_max
+from constraints.constraints import struct_constraints
+from constraints.constraints import struct_constraints_state
+from constraints.constraints import relation_constraints
+from constraints.constraints import relation_constraints_state
+from constraints.constraints import variable_constraints
+from constraints.constraints import variable_constraints_state
 
 import torch
-from .optimizer import optimizer
-
-import types
-import sys
+from utils.optimizer import optimizer
 
 
 def run_train(args):
